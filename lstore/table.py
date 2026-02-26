@@ -333,8 +333,11 @@ class Table:
         
         if not page0.has_capacity():
             self.bufferpool.unpin(path0)
-            if not page_range.tail_pages[0]:
-                page_range.add_tail_page()
+            page_range.add_tail_page()  # allocate a new tail page for every column
+
+            page_id0 = page_range.tail_pages[0][-1]
+            path0 = self._page_path("tail", page_range_ind, 0, page_id0)
+            page0 = self.bufferpool.get_page(path0)
                 
             page_id0 = page_range.tail_pages[0][-1]
             path0 = self._page_path("tail", page_range_ind, 0, page_id0)
@@ -428,9 +431,6 @@ class Table:
                 
                 for offset in range(rid_page.num_records):
                     rid = rid_page.read(offset)
-                    #if rid is None:
-                    if rid in (0, None):
-                        continue
                     self.page_directory[rid] = (page_range_ind, page_ind, offset)
                     
                 self.bufferpool.unpin(rid_path)
